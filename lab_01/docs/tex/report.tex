@@ -1,0 +1,281 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+%\usepackage[14pt]{extsizes}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools} 
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usepackage{float}
+\usepackage{indentfirst}
+\usepackage{eucal}
+\usepackage{enumitem}
+%s\documentclass[openany]{book}
+\frenchspacing
+
+\usepackage{indentfirst} % Красная строка
+
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\usepackage{amsmath}
+
+
+% Для листинга кода:
+\lstset{ %
+	language=c,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+
+\usepackage[left=2cm,right=2cm, top=2cm,bottom=2cm,bindingoffset=0cm]{geometry}
+% Для измененных титулов глав:
+\usepackage{titlesec, blindtext, color} % подключаем нужные пакеты
+\definecolor{gray75}{gray}{0.75} % определяем цвет
+\newcommand{\hsp}{\hspace{20pt}} % длина линии в 20pt
+% titleformat определяет стиль
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{|}\hsp}{0pt}{\Huge\bfseries}
+
+
+% plot
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\begin{document}
+	%\def\chaptername{} % убирает "Глава"
+	\thispagestyle{empty}
+	\begin{titlepage}
+		\noindent \begin{minipage}{0.15\textwidth}
+			\includegraphics[width=\linewidth]{img/b_logo}
+		\end{minipage}
+		\noindent\begin{minipage}{0.9\textwidth}\centering
+			\textbf{Министерство науки и высшего образования Российской Федерации}\\
+			\textbf{Федеральное государственное бюджетное образовательное учреждение высшего образования}\\
+			\textbf{~~~«Московский государственный технический университет имени Н.Э.~Баумана}\\
+			\textbf{(национальный исследовательский университет)»}\\
+			\textbf{(МГТУ им. Н.Э.~Баумана)}
+		\end{minipage}
+		
+		\noindent\rule{18cm}{3pt}
+		\newline\newline
+		\noindent ФАКУЛЬТЕТ $\underline{\text{«Информатика и системы управления»}}$ \newline\newline
+		\noindent КАФЕДРА $\underline{\text{«Программное обеспечение ЭВМ и информационные технологии»}}$\newline\newline\newline\newline\newline
+		
+		\begin{center}
+			\noindent\begin{minipage}{1.1\textwidth}\centering
+				\Large\textbf{  Отчет по лабораторной работе №1}\newline
+				\textbf{по дисциплине <<Моделирование>>}\newline\newline
+			\end{minipage}
+		\end{center}
+		
+		\noindent\textbf{Тема} $\underline{\text{Решение задачи Коши разными методами}}$\newline\newline
+		\noindent\textbf{Студент} $\underline{\text{Романов А.В.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Группа} $\underline{\text{ИУ7-63Б~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Оценка (баллы)} $\underline{\text{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Преподаватель} $\underline{\text{Градов В. М.~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline\newline
+		
+	\begin{center}
+		\vfill
+		Москва~---~\the\year
+		~г.
+	\end{center}
+\end{titlepage}
+	
+	
+
+\section*{Тема работы}
+Программная реализация приближенного аналитического метода и численныхалгоритмов первого и второго порядков точности при решении задачи Коши для ОДУ.\par
+
+\section*{Цель работы}
+Получение навыков решения задачи Коши при помощи метода Пикара, метода Эйлера и метода Рунге-Кутты 2-го порядка.\par
+
+\section*{Теоретические сведения}
+
+Имеем ОДУ, у которого отсутствует аналитическое решение:
+
+\begin{equation}
+	\label{initial_odu}
+	\begin{cases}
+		u'(x) = f(x, u)\\
+		u(\xi) = \eta
+	\end{cases}
+\end{equation}\newline
+
+Для решения данного ОДУ были использованы 3 алгоритма.
+
+\subsection*{Метод Пикара}
+
+Имеем:
+
+\begin{equation}
+	\label{solution}
+	u(x) = \eta +  \int_{\xi}^{x} f(t,u(t)) \,dt 
+\end{equation}
+
+Строим ряд функций:
+
+\begin{equation}
+	\label{sol}
+	y^{(s)} = \eta +  \int_{\xi}^{x} f(t,y^{(s-1)}(t)) \,dt, \quad \quad
+	y^{(0)} = \eta
+\end{equation}
+
+Построим 4 приближения для уравнения (\ref{solution}):
+
+\begin{equation}
+	\label{f1}
+	y^{(1)}(x) = 0 + \int_{0}^{x} t^2 \,dt = \frac{x^3}{3}
+\end{equation}
+
+\begin{equation}
+	\label{f2}
+	y^{(2)}(x) = 0 + \int_{0}^{x} (t^2 + \left(\frac{t^3}{3}\right)^2) \,dt = \frac{x^3}{3} + \frac{x^7}{63}
+\end{equation}
+
+\begin{equation}
+	\label{f3}
+	y^{(3)}(x) = 0 + \int_{0}^{x} (t^2 + \left(\frac{t^3}{3} + \frac{t^7}{63}\right)^2) \,dt = \frac{x^3}{3} + \frac{x^7}{63} + \frac{2x^{11}}{2079} + \frac{x^{15}}{59535}
+\end{equation}
+
+\begin{equation}
+	\begin{split}
+		\label{f4}
+		y^{(4)}(x) = 0 + \int_{0}^{x} (t^2 + \left(\frac{t^3}{3} + \frac{t^7}{63} + \frac{2t^{11}}{2079} + \frac{t^{15}}{59535}\right)^2) \,dt = \frac{x^3}{3} + \frac{x^7}{63} + \frac{2x^{11}}{2079} +\\
+		\frac{x^{15}}{59535} + \frac{2x^{15}}{93555} + \frac{2x^{19}}{3393495} + \frac{2x^{19}}{2488563} + \frac{2x^{23}}{86266215} + \\
+		\frac{x^{23}}{99411543} + \frac{2x^{27}}{3341878155}  + \frac{x^{31}}{109876902975}
+	\end{split}
+\end{equation}
+
+\subsection*{Метод Эйлера}
+
+\begin{equation}
+	\label{ey}
+	y^{(n+1)}(x) = y^{(n)}(x) + h \cdot f(x_{n}, y^{(n)})
+\end{equation}
+
+\indent Порядок точности: $O(h)$.
+
+\subsection*{Метод Рунге-Кутта}
+
+\begin{equation}
+	\label{rk}
+	y^{n+1}(x) = y^{n}(x) + h ((1-\alpha) R_1 + \alpha R_2)
+\end{equation}\newline
+
+где $R1 = f(x_{n}, y^{n})$, $R2 = f(x_{n} + \frac{h}{2\alpha}, y^{n} + \frac{h}{2\alpha}R_1)$, $\alpha = \frac{1}{2}$ или 1\newline
+
+Порядок точности: $O(h^2)$.
+
+\clearpage
+\section*{Исходный код алгоритмов}
+\subsection*{Метод Пикара}
+
+\begin{lstlisting}[label=picard,caption=Реализация алгоритма Пикара, language=haskell]
+picard :: Approximation -> Double -> Double
+picard 1 x = x ** 3 / 3
+picard 2 x = x ** 3 / 3 + x ** 7 / 63
+picard 3 x = x ** 3 / 3 + x ** 7 / 63 + 2 * x ** 11 / 2079 + x ** 15 / 59535
+picard 4 x = x ** 3 / 3 + x ** 7 / 63 + 2 * x ** 11 / 2079 + x ** 15 / 59535 
+	+ 2 * x ** 15 / 93555 + 2 * x ** 19 / 3393495 + 2 * x ** 19 / 2488563 + 2 * x ** 23 / 86266215
+	+ x ** 23 / 99411543 + 2 * x ** 27 / 3341878155 + x ** 31 / 109876902975
+
+getPicard :: Approximation -> Double -> Double -> Double -> [Double]
+getPicard approx h x0 xm = map (\x -> picard approx x) [x0, x0 + h..xm]
+\end{lstlisting}
+
+\subsection*{Метод Эйлера}
+\begin{lstlisting}[label=euler,caption=Реализация алгоритма Эйлера, language=haskell]
+euler :: Double -> Double -> Double -> (Double -> Double -> Double) -> Double
+euler x y h f = y + h * f x y
+
+getEuler :: Double -> Double -> Double -> Double -> (Double -> Double -> Double) -> [Double]
+getEuler h x0 xm y0 f = snd $ foldl
+	(\acc x ->
+		(euler x (fst acc) h f, snd acc ++ [euler x (fst acc) h f])) (y0, []) [x0, x0 + h..xm]
+\end{lstlisting}
+
+\subsection*{Метод Рунге-Кутта}
+\begin{lstlisting}[label=runge-kutta,caption=Реализация алгоритма Рунге-Кутта, language=haskell]
+rungeKutta :: Double -> Double -> Double -> Alpha -> (Double -> Double -> Double) -> Double
+rungeKutta x y h alpha f = y + h * ((1 - alpha) * r1 + alpha * r2)
+	where  r1 = f x y
+		   r2 = f (x + h / (2 * alpha)) $ y + h / (2 * alpha) * r1
+
+getRungeKutta :: Double -> Alpha -> Double -> Double -> Double -> (Double -> Double -> Double) -> [Double]
+getRungeKutta h alpha x0 xm y0 f = snd $ foldl
+	(\acc x ->
+		(rungeKutta x (fst acc) h alpha f, snd acc ++ [rungeKutta x (fst acc) h alpha f])) (y0, []) [x0, x0 + h..xm]
+\end{lstlisting}
+
+\section*{Результат работы программы}
+
+\begin{itemize}
+	\item первый столбец -- x;    
+	\item второй столбец - метод Пикара (1 приближение); 
+	\item третий столбец Пикара (2 приближение);
+	\item четвертый столбец - метод Пикара (3 приближение);
+	\item пятый столбец - метод Пикара (4 приближение);
+	\item шестой столбец - метод Эйлера;     
+	\item седьмой столбец - метод Рунге-Кутта.
+\end{itemize}
+
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.4]{img/1e-4.png}
+	\end{center}
+	\caption{Таблица значений с шагом 1e-4, часть значений не выведена}
+	\label{img:1e-4}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.4]{img/1e-4-2.png}
+	\end{center}
+	\caption{Таблица значений с шагом 1e-4 на интервале [1.999, 2.0011]}
+	\label{img:1e-4-2}
+\end{figure}
+
+\section*{Ответы на вопросы}
+
+\textbf{Укажите интервалы значений аргумента, в которых можно считать решением заданногоуравнения каждое из первых 4-х приближений Пикара. Точность результата оценивать довторой цифры после запятой. Объяснить свой ответ.}\newline
+
+Мы можем считать первое приближение решением уравнения до того момента пока значения первого и второго приближения совпадают до второй цифры после запятой. Если приближения расходятся, нужно рассматривать второе и третье приближение по такому же принципу -- если значения сходятся, то решением на таком интервале является второе приближение. И так далее.
+
+\begin{itemize}
+	\item На интервале [0; 0.75] решением можно считать первое приближение.
+	\item На интервале (0.75; 1.22] решением можно считать второе приближение.
+	\item На интервале (1.22; 1.48] решением можно считать третье приближение.
+	\item Для нахождения интервала, где решением можно считать четвертое приближение, нужно рассчитать пятое приближение.
+\end{itemize}
+
+\textbf{Пояснить, каким образом можно доказать правильность полученного результата прификсированном значении аргумента в численных методах.}\newline
+
+Для того чтобы доказать правильность полученного результата, нужно рассмотреть значения в окрестности точки, с шагом приближенным к нулю. Если при таком шаге значения примерно совпадают, то значение посчитано правильно.\newline
+
+\textbf{Каково значение функции при x = 2, т.е. привести значение u(2).}\newline
+
+Около 327.
+
+\bibliographystyle{utf8gost705u}  % стилевой файл для оформления по ГОСТу
+	
+\bibliography{51-biblio}          % имя библиографической базы (bib-файла)
+	
+	
+\end{document}

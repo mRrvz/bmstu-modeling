@@ -18,7 +18,7 @@ x0 :: Double
 x0 = 0
 
 xmax :: Double
-xmax = 2
+xmax = 2.05
 
 everyf :: Int -> [a] -> [a]
 everyf n [] = []
@@ -36,7 +36,7 @@ formatResults = wrapper [[]]
 
 main :: IO ()
 main = do
-    let getEvery = 100
+    let getEvery = 1
 
     printTable $
       [[ "X"

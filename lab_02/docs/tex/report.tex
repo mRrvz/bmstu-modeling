@@ -1,0 +1,306 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+%\usepackage[14pt]{extsizes}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools} 
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usepackage{float}
+\usepackage{indentfirst}
+\usepackage{eucal}
+\usepackage{enumitem}
+%s\documentclass[openany]{book}
+\frenchspacing
+
+\usepackage{indentfirst} % Красная строка
+
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\usepackage{amsmath}
+
+
+% Для листинга кода:
+\lstset{ %
+	language=c,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+
+\usepackage[left=2cm,right=2cm, top=2cm,bottom=2cm,bindingoffset=0cm]{geometry}
+% Для измененных титулов глав:
+\usepackage{titlesec, blindtext, color} % подключаем нужные пакеты
+\definecolor{gray75}{gray}{0.75} % определяем цвет
+\newcommand{\hsp}{\hspace{20pt}} % длина линии в 20pt
+% titleformat определяет стиль
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{|}\hsp}{0pt}{\Huge\bfseries}
+
+
+% plot
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\begin{document}
+	%\def\chaptername{} % убирает "Глава"
+	\thispagestyle{empty}
+	\begin{titlepage}
+		\noindent \begin{minipage}{0.15\textwidth}
+			\includegraphics[width=\linewidth]{img/b_logo}
+		\end{minipage}
+		\noindent\begin{minipage}{0.9\textwidth}\centering
+			\textbf{Министерство науки и высшего образования Российской Федерации}\\
+			\textbf{Федеральное государственное бюджетное образовательное учреждение высшего образования}\\
+			\textbf{~~~«Московский государственный технический университет имени Н.Э.~Баумана}\\
+			\textbf{(национальный исследовательский университет)»}\\
+			\textbf{(МГТУ им. Н.Э.~Баумана)}
+		\end{minipage}
+		
+		\noindent\rule{18cm}{3pt}
+		\newline\newline
+		\noindent ФАКУЛЬТЕТ $\underline{\text{«Информатика и системы управления»}}$ \newline\newline
+		\noindent КАФЕДРА $\underline{\text{«Программное обеспечение ЭВМ и информационные технологии»}}$\newline\newline\newline\newline\newline
+		
+		\begin{center}
+			\noindent\begin{minipage}{1.1\textwidth}\centering
+				\Large\textbf{  Отчет по лабораторной работе №2}\newline
+				\textbf{по дисциплине <<Моделирование>>}\newline\newline
+			\end{minipage}
+		\end{center}
+		
+		\noindent\textbf{Тема} $\underline{\text{Метод Рунге-Кутта 4-го порядка при решении системы ОДУ}}$\newline\newline
+		\noindent\textbf{Студент} $\underline{\text{Романов А.В.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Группа} $\underline{\text{ИУ7-63Б~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Оценка (баллы)} $\underline{\text{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Преподаватель} $\underline{\text{Градов В. М.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline\newline
+		
+	\begin{center}
+		\vfill
+		Москва~---~\the\year
+		~г.
+	\end{center}
+\end{titlepage}
+	
+
+\section*{Тема работы}
+Программно-алгоритмическая реализация метода Рунге-Кутта 4-го порядка точности при решении системы ОДУ в задаче Коши.\par
+
+\section*{Цель работы}
+Получение навыков разработки алгоритмов решения задачи Коши при реализации моделей, построенных на системе ОДУ, с использованием метода Рунге-Кутта 4-го порядка точности.\par
+
+\section*{Теоретические сведения}
+
+Опишем колебательный контур с помощью системы уравнений:
+
+\begin{equation*}
+	\begin{cases} L_k \frac{dI}{dt} + (R_k + R_p(I)) \cdot I - U_C = 0 
+	\\ \frac{dU_c}{dt} = - \frac{I}{C_k}
+	\end{cases}
+\end{equation*}\\
+
+Значение Rp(I) можно вычислить по формуле:\\
+
+$Rp = \frac{l_e}{2 \pi \cdot \int_0^R \sigma(T(r))rdr} = \frac{l_e}{2 \pi R^2 \cdot \int_0^1 \sigma(T(z))dz}$\\
+
+т. к. $z=r/R$. \\
+
+\indent Значение T(z) вычисляется по формуле:\\
+
+$T(z) = T_0 + (T_w - T_0) \cdot Z^m$\\
+
+Заданы начальные параметры:\\\\
+\indent $R$ = 0.35 см (Радиус трубки)\\
+\indent $l_{e}$ = 12 см (Расстояние между электродами лампы)\\
+\indent $L_{k}$ = 187e-6 Гн (Индуктивность)\\
+\indent $C_{k}$ = 268e-6 Ф (Емкость конденсатора)\\
+\indent $R_{k}$ = 0.25 Ом (Сопротивление)\\
+\indent $U_{c0}$ = 1400 В (Напряжение на конденсаторе в начальный момент времени)\\
+\indent $I_{0}$ = 0..3 А (Сила тока в цепи в начальный момент времени t = 0)\\
+\indent $T_{w}$ = 2000 K 
+
+\subsubsection*{Метод Рунге-Кутта четвертого порядка точности}
+
+Имеем систему уравнений вида:
+\begin{equation*}
+	\begin{cases}
+	u'(x) = f(x, u(x)) \\
+	u(\xi) = \eta
+	\end{cases}
+\end{equation*}
+
+Тогда:\newline
+
+$y_{n+1} = y_n + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}$
+
+$k_1 = h_n f(x_n, y_n)$
+
+$k_2 = h_n f(x_n + \frac{h_n}{2}, y_n + \frac{k_1}{2})$
+
+$k_3 = h_n f(x_n + \frac{h_n}{2}, y_n + \frac{k_2}{2})$
+
+$k_4 = h_n f(x_n + h_n, y_n + k_3)$\newline
+
+Рассмотрим обобщение формулы на случай двух переменных. Пусть дана система:
+
+\begin{equation*}
+	\begin{cases}
+	u'(x) = f(x, u, v) \\
+	v'(x) = \varphi(x, u, v) \\
+	v(\xi) = v_0 \\
+	u(\xi) = u_0 \\
+	\end{cases}
+\end{equation*}
+
+Тогда:\newline
+
+$y_{n+1} = y_n + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}$
+
+$z_{n+1} = z_n + \frac{q_1 + 2q_2 + 2q_3 + q_4}{6}$\newline
+
+$k_1 = h_n f(x_n, y_n, z_n)$
+
+$k_2 = h_n f(x_n + \frac{h_n}{2}, y_n + \frac{k_1}{2}, z_n + \frac{q_1}{2})$
+
+$k_3 = h_n f(x_n + \frac{h_n}{2}, y_n + \frac{k_2}{2}, z_n + \frac{q_2}{2})$
+
+$k_4 = h_n f(x_n + h_n, y_n + k_3, z_n + q_3)$
+
+$q_1 = h_n \varphi(x_n, y_n, z_n)$
+
+$q_2 = h_n \varphi(x_n + \frac{h_n}{2}, y_n + \frac{k_1}{2}, z_n + \frac{q_1}{2})$
+
+$q_3 = h_n \varphi(x_n + \frac{h_n}{2}, y_n + \frac{k_2}{2}, z_n + \frac{q_2}{2})$
+
+$q_4 = h_n \varphi(x_n + h_n, y_n + k_3, z_n + q_3)$
+
+
+\section*{Исходный код алгоритма}
+
+\begin{lstlisting}[label=picard,caption=Реализация алгоритма Рунге-Кутта 4 порядка для решения системы ОДУ, language=python]
+def T(z, T0, m):
+	return T0 + (params.Tw - T0) * z ** m
+
+def f(x, y, z, Rp):
+	return -((params.Rk + Rp) * y - z) / params.Lk
+
+def phi(x, y, z):
+	return -y / params.Ck
+
+def get_column(table, ind):
+	return list(map(lambda x: x[ind], table))
+
+def sigma(T):
+	return interpolate(T, get_column(snd_table, 0), get_column(snd_table, 1))
+
+def get_T0(I):
+	return interpolate(I, get_column(fst_table, 0), get_column(fst_table, 1))
+
+def get_m(I):
+	return interpolate(I, get_column(fst_table, 0),  get_column(fst_table, 2))
+
+def get_Rp(I, T0, m):
+	integral = integrate.quad(lambda z: sigma(T(z, T0, m)) * z, 0, 1)
+	return params.Le / (2 * math.pi * params.R ** 2 * integral[0])
+
+def interpolate(x, x_pts, y_pts, order=1):
+	return InterpolatedUnivariateSpline(x_pts, y_pts, k=order)(x)
+
+def get_current_addition(h, coeffs, i, order):
+	if i == 0:
+		return 0, 0, 0
+	elif i == order - 1:
+		return h, coeffs.Kn, coeffs.Pn
+
+	return h / 2, coeffs.Kn / 2, coeffs.Pn / 2
+
+def get_next_members(current_y, current_z, coeffs):
+	k_sum = 0, p_sum = 0
+	
+	for i in range(len(coeffs)):
+		if i > 0 and i < len(coeffs) - 1:
+			k_sum += 2 * coeffs[i].Kn
+			p_sum += 2 * coeffs[i].Pn
+		else:
+			k_sum += coeffs[i].Kn
+			p_sum += coeffs[i].Pn
+	
+	divider = 2 * (len(coeffs) - 2) + 2
+	return current_y + k_sum / divider, current_z + p_sum / divider
+
+
+def get_runge_kutta(x, y, z, h, Rp, order=4):
+	coeffs = [RungeCoeffs(0, 0) for x in range(order)]
+	
+	for i in range(order):
+		curr_h, y_add, z_add = get_current_addition(h, coeffs[i - 1], i, order)
+		coeffs[i] = RungeCoeffs(h * f(x + curr_h, y + y_add, z + z_add, Rp), h * phi(x + curr_h, y + y_add, z + z_add))
+
+	return get_next_members(y, z, coeffs)
+\end{lstlisting}
+
+\section*{Результат работы программы}
+
+На риснуке \ref{img:fst} представленны графики зависимости от времени импульса $t$: $I(t)$, $U(t)$, $R_{p}(t)$, $I(t)*R_{p}(t)$, $T_{0}(t)$ при исходных данных. Интервал: [0, 0.0008], шаг $h = 1e-6$.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.5]{img/fst.jpg}
+	\end{center}
+	\caption{Графики зависимости от времени импульса $t$}
+	\label{img:fst}
+\end{figure}
+
+На риснуке \ref{img:snd} представлен график $I(t)$, при $R_{k} + R_{p} = 0$. Интервал: [0, 0.0008], шаг $h = 1e-6$.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.56]{img/snd.jpg}
+	\end{center}
+	\caption{График зависимости $I(t)$ при $R_{k} + R_{p} = 0$}
+	\label{img:snd}
+\end{figure}
+
+На риснуке \ref{img:thd} представлен график $I(t)$, при $R_{k} + R_{p} = 200$. Интервал: [0, 0.00002], шаг $h = 1e-7$.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.6]{img/thd.jpg}
+	\end{center}
+	\caption{График зависимости $I(t)$ при $R_{k} + R_{p} = const = 200$}
+	\label{img:thd}
+\end{figure}
+
+
+
+\section*{Ответы на вопросы}
+
+\textbf{Какие способы тестирования программы, кроме указанного в п. 2, можете предложить ещё?}\\
+
+\textbf{Получите систему разностных уравнений для решения сформулированной задачи неявным методом трапеций. Опишите  алгоритм реализации полученных уравнений.}\\
+
+\textbf{Из каких соображений проводится выбор численного методатого или иного порядка точности, учитывая, что чем выше порядок точности метода, тем он более сложени требует, как правило, больших ресурсов вычислительной системы?}\\
+
+\textbf{Можно ли метод Рунге-Кутта применить для решения задачи, в которой часть условий задана на одной границе, а часть на другой? Например, напряжение по-прежнему задано при $t = 0$, т.е. $t = 0$, $U = U_{0}$, а ток задан в другой моментвремени, к примеру, в конце импульса, т.е. при $t =T$, $I = I_{T}$. Какой можете предложить алгоритм вычислений?}
+
+\bibliographystyle{utf8gost705u}  % стилевой файл для оформления по ГОСТу
+	
+\bibliography{51-biblio}          % имя библиографической базы (bib-файла)
+	
+	
+\end{document}

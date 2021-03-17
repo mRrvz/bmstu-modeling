@@ -2,7 +2,7 @@ import math
 
 from collections import namedtuple
 from scipy import integrate
-from scipy.interpolate import InterpolatedUnivariateSpline, interp1d
+from scipy.interpolate import InterpolatedUnivariateSpline
 
 RungeCoeffs = namedtuple('RungeCoeffs', 'Kn Pn')
 Params = namedtuple('Params', 'R Le Lk Ck Rk Uc0 I0 Tw')
@@ -37,10 +37,8 @@ snd_table = (
     (14000, 81.5)
 )
 
-current_T0 = None
-
 def T(z, T0, m):
-    return T0 + (params.Tw - T0) * z ** m
+    return (params.Tw - T0) * math.pow(z, m) + T0
 
 
 def f(x, y, z, Rp):
@@ -107,6 +105,5 @@ def get_runge_kutta(x, y, z, h, Rp, order=4):
     for i in range(order):
         curr_h, y_add, z_add = get_current_addition(h, coeffs[i - 1], i, order)
         coeffs[i] = RungeCoeffs(h * f(x + curr_h, y + y_add, z + z_add, Rp), h * phi(x + curr_h, y + y_add, z + z_add))
-
 
     return get_next_members(y, z, coeffs)

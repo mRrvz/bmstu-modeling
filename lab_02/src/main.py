@@ -1,8 +1,8 @@
-
 from numpy import arange
 
 import plot
 from modeling import params, get_runge_kutta, get_Rp, get_T0, get_m
+
 
 def main():
     I = params.I0

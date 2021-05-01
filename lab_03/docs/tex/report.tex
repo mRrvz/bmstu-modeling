@@ -1,0 +1,223 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+%\usepackage[14pt]{extsizes}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools} 
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usepackage{float}
+\usepackage{indentfirst}
+\usepackage{eucal}
+\usepackage{enumitem}
+%s\documentclass[openany]{book}
+\frenchspacing
+
+\usepackage{indentfirst} % Красная строка
+
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\usepackage{amsmath}
+
+
+% Для листинга кода:
+\lstset{ %
+	language=c,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+
+\usepackage[left=2cm,right=2cm, top=2cm,bottom=2cm,bindingoffset=0cm]{geometry}
+% Для измененных титулов глав:
+\usepackage{titlesec, blindtext, color} % подключаем нужные пакеты
+\definecolor{gray75}{gray}{0.75} % определяем цвет
+\newcommand{\hsp}{\hspace{20pt}} % длина линии в 20pt
+% titleformat определяет стиль
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{|}\hsp}{0pt}{\Huge\bfseries}
+
+
+% plot
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\begin{document}
+	%\def\chaptername{} % убирает "Глава"
+	\thispagestyle{empty}
+	\begin{titlepage}
+		\noindent \begin{minipage}{0.15\textwidth}
+			\includegraphics[width=\linewidth]{img/b_logo}
+		\end{minipage}
+		\noindent\begin{minipage}{0.9\textwidth}\centering
+			\textbf{Министерство науки и высшего образования Российской Федерации}\\
+			\textbf{Федеральное государственное бюджетное образовательное учреждение высшего образования}\\
+			\textbf{~~~«Московский государственный технический университет имени Н.Э.~Баумана}\\
+			\textbf{(национальный исследовательский университет)»}\\
+			\textbf{(МГТУ им. Н.Э.~Баумана)}
+		\end{minipage}
+		
+		\noindent\rule{18cm}{3pt}
+		\newline\newline
+		\noindent ФАКУЛЬТЕТ $\underline{\text{«Информатика и системы управления»}}$ \newline\newline
+		\noindent КАФЕДРА $\underline{\text{«Программное обеспечение ЭВМ и информационные технологии»}}$\newline\newline\newline\newline\newline
+		
+		\begin{center}
+			\noindent\begin{minipage}{1.1\textwidth}\centering
+				\Large\textbf{  Отчет по лабораторной работе №3}\newline
+				\textbf{по дисциплине <<Моделирование>>}\newline\newline
+			\end{minipage}
+		\end{center}
+		
+		\noindent\textbf{Тема} $\underline{\text{ОДУ второго порядка с краевыми условиями 2 и 3 рода}}$\newline\newline
+		\noindent\textbf{Студент} $\underline{\text{Романов А.В.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Группа} $\underline{\text{ИУ7-63Б~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Оценка (баллы)} $\underline{\text{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Преподаватель} $\underline{\text{Градов В. М.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline\newline
+		
+	\begin{center}
+		\vfill
+		Москва~---~\the\year
+		~г.
+	\end{center}
+\end{titlepage}
+	
+
+\section*{Тема работы}
+Программно-алгоритмическая реализация моделей на основе ОДУ второго порядка с краевыми условиями II и III рода.\par
+
+\section*{Цель работы}
+Получение навыков разработки алгоритмов решения краевой задачи при реализации моделей, построенных на ОДУ второго порядка.\par
+
+\section*{Теоретические сведения}
+
+Задана математическая модель:
+
+\begin{equation*}
+	\frac{d}{dx}(\lambda(T)\frac{dT}{dx}) - 4 \cdot k(T) \cdot n_{\rho}^2 \cdot \sigma \cdot (T^4 - T_{0}^4) = 0
+\end{equation*}\\
+
+Краевые условия:
+
+\begin{equation*}
+	\begin{cases} x = 0, -\lambda(T(0))\frac{dT}{dx} = F_{0}.
+	\\ x = l, -\lambda(T(l))\frac{dT}{dx} = \alpha(T(l) - T_{0})
+	\end{cases}
+\end{equation*}\\
+
+Функции $\lambda(T)$ и $k(T)$ заданы таблицей.\\
+
+Заданы начальные параметры:\\
+\indent $n_\rho$ = 1.4 - коэффициент преломления\\
+\indent $l$ = 0.2 см - толщина слоя\\
+\indent $T_{0}$ = 300К - температура окружающей среды\\
+\indent $\sigma$ = 5.668 $\cdot 10^{-12}$ Вт / ($cm^2 \cdot K^4$) - постоянная Стефана - Больцмана\\
+\indent $F_{0}$ = 100 Вт / $cm^2$ - поток тепла\\
+\indent $\alpha$ = 0.05 Вт / ($cm^2 \cdot K$) - коэффициент теплоотдачи\\
+
+Выход из итераций организовать по температуре и по балансу энергии:
+
+\begin{equation*}
+	max|\frac{y^s_n - y^{s-1}_n}{y^s_n}| <= \varepsilon_{1}
+\end{equation*} 
+
+\indent для всех $n = 0, 1, ... N.$ и \\
+
+\begin{equation*}
+	max|\frac{f^s_1 - y^s_2}{f^s_1}| <= \varepsilon_{1}
+\end{equation*}
+
+где \\
+
+\begin{equation*}
+	f_{1} = F_0 - \alpha(T(l) - T_{0})
+\end{equation*}
+
+\begin{equation*}
+	f_{2}  = 4n^2_\rho \sigma \int^1_0 k(T(x))(T^4(x) - T^4_0) dx
+\end{equation*}
+
+\section*{Исходный код алгоритма}
+
+\begin{lstlisting}[label=picard,caption=, language=python]
+	import os
+\end{lstlisting}
+
+\section*{Результаты работы программы}
+
+\textbf{Представить разностный аналог краевого условия при $x = l$ и его краткий вывод интегро-интерполяционным методом.}
+
+\begin{figure}[H]
+	\begin{center}
+		%\includegraphics[scale=0.5]{img/fst.jpg}
+	\end{center}
+	%\caption{Графики зависимости от времени импульса $t$}
+	\label{img:fst}
+\end{figure}
+
+\textbf{График зависимости температуры $T(x)$ координаты $x$ при заданных выше параметрах.}\\
+
+\textbf{График зависимости $T(x)$ при $F_{0}$ = -10 Bт / $cm^2$. }\\
+
+\textbf{График зависимости $T(x)$ при увеличенных значениях $\alpha$ (например, в 3 раза). Сравнить с п. 2.}\\
+
+\textbf{График зависимости $T(x)$ при $F_{0} = 0$.}\\
+
+\textbf{Для указанного в задании исходного набора параметров привести данные по балансу энергии.}\\
+
+\section*{Ответы на вопросы}
+
+\textbf{1. Какие способы тестирования программы можно предложить?}\\
+
+При $F_0 > 0$ происходит охлаждение пластины, при $F_0 < 0$ нагревание. Кроме того, при увеличении показтеля теплосъема, уровень должен снижаться, а градиент увеличиваться.
+
+\textbf{2. Получите  простейший разностный аналог нелинейного краевого условия при $x = l$.}\\
+
+Аппроксимируем производную:
+\begin{equation*}
+	\frac{dT}{dx} = \frac{y_{N} - y_{N - 1}}{h}
+\end{equation*}
+
+Подставим в исходное уравнение:
+
+\begin{equation*}
+	-k_{N}\frac{y_{n} - y_{N - 1}}{h} = \alpha_{N} (y_{N} - T_{0}) + \varphi(y_{N})
+\end{equation*}
+
+Учтём, что $y_{N - 1} = \xi_{N}y_{N} + \eta_{N}:$
+
+\begin{equation*}
+	-k_{N}(y_{N} - \xi_{N}y_{N} + \eta_{N}) = \alpha_{N}(y_{N} - T_{0})h + \varphi(y_{N})h
+\end{equation*}
+
+Приводя подобные, получим:
+
+\begin{equation*}
+	\phi(y_{N})h + (k_{N} + \alpha_{N} h - k_{N} \xi_{N} - k_{N} \eta_{N})y_{N} - h\alpha_{N}T_{0} = 0
+\end{equation*}
+
+\textbf{3. Опишите алгоритм применения метода прогонки, если при $x = 0$ краевое условие квазилинейное (как в настоящей работе), а при $x = l$, как в п. 2.}\\
+
+\textbf{4. Опишите алгоритм определения единственного значения сеточной функции $y_\rho$ в одной заданной точке $\rho$. Использовать встречную прогонку, т.е. комбинацию правой и левой прогонок.}\\
+
+\bibliographystyle{utf8gost705u}  % стилевой файл для оформления по ГОСТу
+	
+\bibliography{51-biblio}          % имя библиографической базы (bib-файла)
+	
+	
+\end{document}

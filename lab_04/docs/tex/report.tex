@@ -1,0 +1,437 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+%\usepackage[14pt]{extsizes}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools} 
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usepackage{float}
+\usepackage{indentfirst}
+\usepackage{eucal}
+\usepackage{enumitem}
+%s\documentclass[openany]{book}
+\frenchspacing
+
+\usepackage{indentfirst} % Красная строка
+
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\usepackage{amsmath}
+
+
+% Для листинга кода:
+\lstset{ %
+	language=c,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+
+\usepackage[left=2cm,right=2cm, top=2cm,bottom=2cm,bindingoffset=0cm]{geometry}
+% Для измененных титулов глав:
+\usepackage{titlesec, blindtext, color} % подключаем нужные пакеты
+\definecolor{gray75}{gray}{0.75} % определяем цвет
+\newcommand{\hsp}{\hspace{20pt}} % длина линии в 20pt
+% titleformat определяет стиль
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{|}\hsp}{0pt}{\Huge\bfseries}
+
+
+% plot
+\usepackage{pgfplots}
+\usepackage{filecontents}
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{datavisualization.formats.functions}
+
+\begin{document}
+	%\def\chaptername{} % убирает "Глава"
+	\thispagestyle{empty}
+	\begin{titlepage}
+		\noindent \begin{minipage}{0.15\textwidth}
+			\includegraphics[width=\linewidth]{img/b_logo}
+		\end{minipage}
+		\noindent\begin{minipage}{0.9\textwidth}\centering
+			\textbf{Министерство науки и высшего образования Российской Федерации}\\
+			\textbf{Федеральное государственное бюджетное образовательное учреждение высшего образования}\\
+			\textbf{~~~«Московский государственный технический университет имени Н.Э.~Баумана}\\
+			\textbf{(национальный исследовательский университет)»}\\
+			\textbf{(МГТУ им. Н.Э.~Баумана)}
+		\end{minipage}
+		
+		\noindent\rule{18cm}{3pt}
+		\newline\newline
+		\noindent ФАКУЛЬТЕТ $\underline{\text{«Информатика и системы управления»}}$ \newline\newline
+		\noindent КАФЕДРА $\underline{\text{«Программное обеспечение ЭВМ и информационные технологии»}}$\newline\newline\newline\newline\newline
+		
+		\begin{center}
+			\noindent\begin{minipage}{1.1\textwidth}\centering
+				\Large\textbf{  Отчет по лабораторной работе №4}\newline
+				\textbf{по дисциплине <<Моделирование>>}\newline\newline
+			\end{minipage}
+		\end{center}
+		
+		\noindent\textbf{Тема} $\underline{\text{Модели на основе ДУ в частных производных с краевыми условиями 2 и 3 рода}}$\newline\newline
+		\noindent\textbf{Студент} $\underline{\text{Романов А.В.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Группа} $\underline{\text{ИУ7-63Б~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Оценка (баллы)} $\underline{\text{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline
+		\noindent\textbf{Преподаватель} $\underline{\text{Градов В. М.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}}$\newline\newline\newline
+		
+	\begin{center}
+		\vfill
+		Москва~---~\the\year
+		~г.
+	\end{center}
+\end{titlepage}
+	
+
+\section*{Тема работы}
+Программно-алгоритмическая реализация моделей на основе дифференциальных уравнений в частных производных с краевыми условиями IIи III рода.\par
+
+\section*{Цель работы}
+Получение навыков разработки алгоритмов решения смешанной краевой задачи при реализации моделей, построенных на квазилинейном уравнении параболического типа.\par
+
+\section*{Теоретические сведения}
+
+Задана математическая модель:
+
+\begin{equation}
+	c(T) \frac{\partial T}{\partial t} = \frac{\partial}{\partial x} (k(T) \frac{\partial T}{\partial x}) - \frac{2}{R}\alpha(x)T + \frac{2T_{0}}{R}\alpha(x)
+\end{equation}\\
+
+Краевые условия:
+
+\begin{equation}
+	\begin{cases} t = 0, T(x, 0) = T_{0}
+	\\ x = 0, - k(T(0)) \frac{\partial T}{\partial x} = F_{0}
+	\\ x = l, - k(T(l)) \frac{\partial T}{\partial x} = \alpha_{N} (T(l) - T_{0})
+	\end{cases}
+\end{equation}\\
+
+В обозначениях уравнения лекции:
+
+\begin{equation}
+	p(x) = \frac{2}{R} \alpha(x)
+\end{equation}
+
+\begin{equation}
+	f(u) = f(x) = \frac{2T_{0}}{R}\alpha(x)
+\end{equation}
+
+Разностная схема с разностным краевым условие при $x = 0$:
+
+\begin{equation*}
+	(\frac{h}{8} \buildrel\,\,\frown\over{c_{\frac{1}{2}}} + \frac{h}{4} \buildrel\,\,\frown\over{c_{0}} + \buildrel\,\,\frown\over{X_{\frac{1}{2}}} \frac{\tau}{h} + \frac{\tau h}{8} p_{\frac{1}{2}} + \frac{\tau h}{4}p_{0}) \buildrel\,\,\frown\over{y_{0}} + (\frac{h}{8} \buildrel\,\,\frown\over{c_{\frac{1}{2}}} - \buildrel\,\,\frown\over{X_{\frac{1}{2}}} \frac{\tau}{h} + \frac{\tau h}{8} p_\frac{1}{2}) \buildrel\,\,\frown\over{y_{1}} = 
+\end{equation*}
+
+\begin{equation}
+	= \frac{h}{8} \buildrel\,\,\frown\over{c_{\frac{1}{2}}} (y_{0} + y_{1}) + \frac{h}{4} \buildrel\,\,\frown\over{c_{0}} y_{0} + \buildrel\,\,\frown\over{F}\tau + \frac{\tau h}{4} (\buildrel\,\,\frown\over{f_{\frac{1}{2}}} + \buildrel\,\,\frown\over{c_{0}})
+\end{equation}\\
+
+При получении разностного аналога краевого условия при $x = l$ учесть, что поток:
+
+\begin{equation}
+	F_{N} = \alpha{N}(y_{N} - T_{0}), F_{N - \frac{1}{2}} = X_{N - \frac{1}{2}} \frac{y_{N - 1} - y_{N}}{h}
+\end{equation}
+
+Заданы начальные параметры:\\
+
+\begin{itemize}
+	\item $k(T) = a_{1}(b_{1} + c_{1}T^{m_{1}})$, Вт/см K
+	\item $c(T) = a_{2} + b_{2} T^{m_{2}} - \frac{c_{2}}{T^2}$, Дж/c$m^3$ K
+	\item $a_{1} = 0.0134, b_{1} = 1, c_{1} = 4.35 \cdot 10^{-4}, m_{1} = 1$
+	\item $a_{2} = 2.049, b_{2} = 0.563 \cdot 10^{-3}, c_{2} = 0.528 \cdot 10^{5}, m_{2} = 1$
+	\item $\alpha(x) = \frac{c}{x - d}, \alpha_{0} = 0.05$ Вт/с$m^2$ K, $\alpha_{N} = 0.01$ Вт/c$m^2$ K
+	\item $l = 10$ см
+	\item $T_{0} = 300K$
+	\item $R$ = 0.5 см
+	\item $F(t) = 50$ Вт/с$m^2$
+\end{itemize}
+
+\section*{Исходный код алгоритма}
+
+\begin{lstlisting}[label=picard,caption=, language=python]
+from collections import namedtuple
+from math import pow, fabs
+
+Params = namedtuple('Params', 'a1 b1 c1 m1 a2 b2 c2 m2 alpha0 alphaN l T0 R F0 h t eps')
+
+params = Params(
+	0.0134, 1, 4.35e-4, 1, 2.049, 0.563e-3, 0.528e5, 1, 0.05, 0.01, 10, 300, 0.5, 50, 1e-3, 1, 1e-2
+)
+
+
+def approximation_plus(func, n, step):
+	return (func(n) + func(n + step)) / 2
+
+
+def approximation_minus(func, n, step):
+	return (func(n) + func(n - step)) / 2
+
+
+def k(T):
+	return params.a1 * (params.b1 + params.c1 * pow(T, params.m1))
+
+
+def c(T):
+	return params.a2 + params.b2 * pow(T, params.m2) - (params.c2 / pow(T, 2))
+
+
+def alpha(x):
+	d = (params.alphaN * params.l) / (params.alphaN - params.alpha0)
+	c = -params.alpha0 * d
+	return c / (x - d)
+
+
+def p(x) :
+	return alpha(x) * 2 / params.R
+
+
+def f(x):
+	return alpha(x) * 2 * params.T0 / params.R
+
+
+def A(T):
+	return params.t / params.h * approximation_minus(k, T, params.t)
+
+
+def D(T):
+	return params.t / params.h * approximation_plus(k, T, params.t)
+
+
+def B(x, T):
+	return A(T) + D(T) + params.h * c(T) + params.h * params.t * p(x)
+
+
+def F(x, T):
+	return params.h * params.t * f(x) + T * params.h * c(T)
+
+
+def get_left_conditions(T):
+	c_plus = approximation_plus(c, T[0], params.t)
+	k_plus = approximation_plus(k, T[0], params.t)
+
+	K0 = params.h / 8 * c_plus + params.h / 4 * c(T[0]) + params.t / params.h * k_plus + \
+		params.t * params.h / 8 * p(params.h / 2) + params.t * params.h / 4 * p(0)
+
+	M0 = params.h / 8 * c_plus - params.t / params.h * k_plus + params.t * params.h / 8 * p(params.h / 2)
+
+	P0 = params.h / 8 * c_plus * (T[0] + T[1]) + params.h / 4 * c(T[0]) * T[0] + \
+		params.F0 * params.t + params.t * params.h / 8 * (3 * f(0) + f(params.h))
+
+	return K0, M0, P0
+
+
+def get_right_conditions(T):
+	c_minus = approximation_minus(c, T[-1], params.t)
+	k_minus = approximation_minus(k, T[-1], params.t)
+
+	KN = params.h / 8 * c_minus + params.h / 4 * c(T[-1]) + params.t / params.h * k_minus + \
+		params.t * params.alphaN + params.t * params.h/ 8 * p(params.l - params.h / 2) + \
+		params.t * params.h / 4 * p(params.l)
+
+	MN = params.h / 8 * c_minus - params.t / params.h * k_minus + \
+		params.t * params.h / 8 * p(params.l - params.h / 2)
+
+	PN = params.h / 8 * c_minus * (T[-1] + T[-2]) + params.h / 4 * c(T[-1]) * T[-1] + \
+		params.t * params.alphaN * params.T0 + params.t * params.h / 4 * (f(params.l) + f(params.l - params.h / 2))
+
+	return KN, MN, PN
+
+
+def get_new_T(T):
+	K0, M0, P0 = get_left_conditions(T)
+	KN, MN, PN = get_right_conditions(T)
+
+	xi = [0, -M0 / K0]
+	eta = [0, P0 / K0]
+
+	x = params.h
+	n = 1
+
+	while x + params.h < params.l:
+		Tn = T[n]
+		denominator = (B(x, Tn) - A(Tn) * xi[n])
+
+		next_xi = D(Tn) / denominator
+		next_eta = (F(x, Tn) + A(Tn) * eta[n]) / denominator
+
+		xi.append(next_xi)
+		eta.append(next_eta)
+
+		n += 1
+		x += params.h
+
+	T_new = [0 for _ in range(n + 1)]
+	T_new[n] = (PN - MN * eta[n]) / (KN + MN * xi[n])
+
+	for i in range(n - 1, -1, -1):
+		T_new[i] = xi[i + 1] * T_new[i + 1] + eta[i + 1]
+
+	return T_new
+
+
+def simple_iteration_method():
+	T = [params.T0 for _ in range(int(params.l / params.h) + 1)]
+	T_new = [0 for _ in range(int(params.l / params.h) + 1)]
+
+	result = [T]
+	ti = 0
+
+	epsilon_condition = True
+	while epsilon_condition:
+		T_prev = T
+		current_max = 1
+	
+		while current_max >= 1:
+			T_new = get_new_T(T_prev)
+			current_max = fabs((T[0] - T_new[0]) / T_new[0])
+		
+			for T_i, Tnew_i in zip(T, T_new):
+				d = fabs(T_i - Tnew_i) / Tnew_i
+				if d > current_max:
+					current_max = d
+	
+			T_prev = T_new 
+	
+		result.append(T_new)
+		ti += params.t
+
+		epsilon_condition = False
+		for T_i, Tnew_i in zip(T, T_new):
+			if fabs((T_i - Tnew_i) / Tnew_i) > params.eps:
+				epsilon_condition = True
+
+		T = T_new 
+
+	return result, ti
+\end{lstlisting}
+
+\section*{Результаты работы программы}
+
+\textbf{1. Представить разностный аналог краевого условия при $x = l$ и его краткий вывод интегро-интерполяционным методом.}\\
+
+Проинтегрируем уравнение на отрезке [$X_{n - \frac{1}{2}}; x_{n}$] (с учётом \textbf{(6)}). Примем $F = -k(u) \frac{\partial T}{\partial x}$.
+
+\begin{equation}
+	\int^{x_{N}}_{x_{N-\frac{1}{2}}} int^{t_{m + 1}}_{t_{m}} c(t) \frac{\partial T}{\partial t}dt = - \int^{t_{m + 1}}_{t_{m}}dt \int^{x_{N}}_{x_{N-\frac{1}{2}}} \frac{\partial F}{\partial x} dx - \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}{t_{m}}p(x)Tdt + \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}{t_{m}} f(x)dt
+\end{equation}\\
+
+Интегрируя аналогично разностному аналогу краевого условия при $x = 0$ (из лекции) получим, учтя \textbf{(6)}:
+
+\begin{equation*}
+	\frac{h}{4} (\buildrel\,\,\frown\over{c_{N}}(\buildrel\,\,\frown\over{y_{N}} - y_{N}) - \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} (\frac{\buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{y_{N - 1}}}{2} - \frac{y_{N} + y_{N + 1}}{2})) =
+\end{equation*}
+
+\begin{equation}
+	= \tau (\alpha_{N} (\buildrel\,\,\frown\over{y_{N}} - T_{0}) - \buildrel\,\,\frown\over{X_{N}} \frac{\buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{y_{N - 1}}}{h}) - \tau \frac{h}{4} (p_{N}\buildrel\,\,\frown\over{y_{N}} - p_{n - \frac{1}{2} } - \frac{\buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{y_{N - 1}}}{2} + (\buildrel\,\,\frown\over{f_{N}} - \buildrel\,\,\frown\over{f_{N - \frac{1}{2}}}))
+\end{equation}\\
+
+Приведем уравнение к виду $K_{N} \buildrel\,\,\frown\over{y_{N}} + M_{N} \buildrel\,\,\frown\over {y_{N - 1}} = P_{N}$:
+
+\begin{equation*}
+	(\frac{h}{4} \buildrel\,\,\frown\over{c_{N}} + \frac{h}{8} \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} + \tau \alpha_{N} + \frac{\tau}{h} \buildrel\,\,\frown\over{X_{N - \frac{1}{2}}} + \frac{h}{4} \tau p_{N} + \frac{h}{8} \tau p_{N - \frac{1}{2}}) \buildrel\,\,\frown\over{y_{n}} + (\frac{h}{8} \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} - \frac{\tau}{h} \buildrel\,\,\frown\over{X_{N - \frac{1}{2}}} + \frac{h}{8} \tau p_{N - \frac{1}{2}}) \buildrel\,\,\frown\over{y_{N - 1}} =
+\end{equation*}
+
+\begin{equation}
+	= \alpha_{N} \tau T_{0} + \frac{h}{4} \buildrel\,\,\frown\over{C_{N}}y_{N} + \frac{h}{8} \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} (y_{N} + y_{N - 1}) + \frac{h}{4} \tau (\buildrel\,\,\frown\over{f_{N}} + \buildrel\,\,\frown\over{f_{N - \frac{1}{2}}})
+\end{equation}\\
+
+Будеми использовать простую аппроксимацию:
+
+\begin{equation}
+	p_{N - \frac{1}{2}} = \frac{p_{N - 1} + p_{N}}{2}
+\end{equation}\\
+
+Получим $K_{0}, M_{0}, P_{0}, K_{N}, M_{N}, P_{N}$:
+
+\begin{equation}
+	\begin{cases}\buildrel\,\,\frown\over{K_{0}} \buildrel\,\,\frown\over{y_{0}} + \buildrel\,\,\frown\over{M_{0}} \buildrel\,\,\frown\over{y_{1}} = \buildrel\,\,\frown\over{p_{0}}
+		\\ \buildrel\,\,\frown\over{A_{n}}\buildrel\,\,\frown\over{y_{n - 1}} - \buildrel\,\,\frown\over{B_{n}} \buildrel\,\,\frown\over{y_{n}} + \buildrel\,\,\frown\over{D_{n}} \buildrel\,\,\frown\over{y_{n + 1}} = - \buildrel\,\,\frown\over{F_{n}}
+		\\ \buildrel\,\,\frown\over{K_{n}} \buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{M_{N - 1}} \buildrel\,\,\frown\over{y_{N - 1}} = \buildrel\,\,\frown\over{P_{N}}
+	\end{cases}
+\end{equation}\\
+
+Систему \textbf{(11)} решим методом итераций ($s$ - номер итерации): 
+
+\begin{equation}
+	A^{s - 1}_{n} y^s_{n + 1} - B^{s - 1}_{n} y^{s}_{n} + D^{s - 1}_{n} y^{s}_{n - 1} = -F^{s - 1}_{n}
+\end{equation}\\
+
+\clearpage
+\textbf{2. График зависимости температуры $T(x, t_{m})$ от координаты $x$ при нескольких фкисированных значених времени $t_{m}$ при заданных выше параметрах. }\\
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.3]{img/1.png}
+	\end{center}
+	\caption{График зависимости $T(x_{n}, t)$ от координаты $x$}
+	\label{img:1}
+\end{figure}
+
+\textbf{3. График зависимости $T(x_{n}, t)$ при нескольких фиксированных значения координаты $x_{n}$}\\
+
+На рисунке \ref{img:2} верхний график соответствует случаю $x = 0$, нижний случаю $x = l$.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.3]{img/2.png}
+	\end{center}
+	\caption{График зависимости $T(x_{n}, t)$ при нескольких фиксированных значениях координаты $x_{n}$}
+	\label{img:2}
+\end{figure}
+
+\clearpage
+\section*{Ответы на вопросы}
+
+\textbf{1. Приведите  результаты тестирования  программы (графики, общие соображения, качественный анализ)}\\
+
+При отрицательном тепловом потоке слева идет съем тепла (рисунки 3 - 4).
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.3]{img/3.png}
+	\end{center}
+	\caption{График зависимости $T(x_{n}, t)$ от координаты $x$ при $F_{0} = -10$}
+	\label{img:3}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.3]{img/4.png}
+	\end{center}
+	\caption{График зависимости $T(x_{n}, t)$ при нескольких фиксированных значения координаты $x_{n}$ и $F_{0} = -10$}
+	\label{img:4}
+\end{figure}
+
+Если обнулить поток $F_0 (T)$, то на выходе должны получить график температуры, установившейся в соответствии с температурой окружающей среды (рисунок 5).
+
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.4]{img/5.png}
+	\end{center}
+	\caption{График зависимости $T(x_{n}, t)$ при нулевом потоке.}
+	\label{img:5}
+\end{figure}
+
+
+\bibliographystyle{utf8gost705u}  % стилевой файл для оформления по ГОСТу
+	
+\bibliography{51-biblio}          % имя библиографической базы (bib-файла)
+	
+	
+\end{document}

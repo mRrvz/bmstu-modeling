@@ -109,7 +109,7 @@
 Задана математическая модель:
 
 \begin{equation*}
-	\frac{d}{dx}(\lambda(T)\frac{dT}{dx}) - 4 \cdot k(T) \cdot n_{\rho}^2 \cdot \sigma \cdot (T^4 - T_{0}^4) = 0
+	\frac{d}{dx}(\lambda(T)\frac{dT}{dx}) - 4 \cdot k(T) \cdot n_{p}^2 \cdot \sigma \cdot (T^4 - T_{0}^4) = 0
 \end{equation*}\\
 
 Краевые условия:
@@ -123,7 +123,7 @@
 Функции $\lambda(T)$ и $k(T)$ заданы таблицей.\\
 
 Заданы начальные параметры:\\
-\indent $n_\rho$ = 1.4 - коэффициент преломления\\
+\indent $n_p$ = 1.4 - коэффициент преломления\\
 \indent $l$ = 0.2 см - толщина слоя\\
 \indent $T_{0}$ = 300К - температура окружающей среды\\
 \indent $\sigma$ = 5.668 $\cdot 10^{-12}$ Вт / ($cm^2 \cdot K^4$) - постоянная Стефана - Больцмана\\
@@ -149,42 +149,235 @@
 \end{equation*}
 
 \begin{equation*}
-	f_{2}  = 4n^2_\rho \sigma \int^1_0 k(T(x))(T^4(x) - T^4_0) dx
+	f_{2}  = 4n^2_p \sigma ^1_0 k(T(x))(T^4(x) - T^4_0) dx
 \end{equation*}
 
 \section*{Исходный код алгоритма}
 
 \begin{lstlisting}[label=picard,caption=, language=python]
-	import os
+from collections import namedtuple
+from math import pow
+from scipy.interpolate import InterpolatedUnivariateSpline
+from numpy import arange
+
+import plot
+
+Params = namedtuple('Params', 'Np l T0 Tconst, sigma F0 alpha h')
+
+params = Params(
+	1.4, 0.2, 300, 400, 5.668 * pow(10, -12), 100, 0.05, pow(10, -4)
+)
+
+fst_table = (
+	(
+		300, 500, 800, 1100, 2000, 2400
+	),
+	(
+		1.36 * pow(10, -2), 1.63 * pow(10, -2), 1.81 * pow(10, -2),
+		1.98 * pow(10, -2), 2.50 * pow(10, -2), 2.74 * pow(10, -2)
+	)
+)
+
+snd_table = (
+	(
+		293, 1278, 1528, 1677, 2000, 2400
+	),
+	(
+		2.0 * pow(10, -2), 5.0 * pow(10, -2), 7.8 * pow(10, -2),
+		1.0 * pow(10, -1), 1.3 * pow(10, -1), 2.0 * pow(10, -1)
+	),
+)
+
+def interpolate(x_pts, y_pts, order=1):
+	return InterpolatedUnivariateSpline(x_pts, y_pts, k=order)
+
+
+def p(k_t, t, n):
+	return 4 * params.Np * params.Np * params.sigma * k_t(t[n]) * pow(t[n], 3)
+
+
+def f(k_t, t, n):
+	return 4 * params.Np *params.Np + params.sigma * k_t(t[n]) * pow(params.T0, 4)
+
+
+def x_right(l_t, t, n):
+	return (l_t(t[n]) + l_t(t[n + 1])) / 2
+
+
+def x_left(l_t, t, n):
+	return (l_t(t[n]) + l_t(t[n - 1])) / 2
+	
+
+def p_right(k_t, t, n):
+	return (p(k_t, t, n) + p(k_t, t, n + 1)) / 2
+
+
+def p_left(k_t, t, n):
+	return (p(k_t, t, n) + p(k_t, t, n - 1)) / 2
+
+
+def f_right(k_t, t, n):
+	return (f(k_t, t, n) + f(k_t, t, n + 1)) / 2
+
+
+def f_left(k_t, t, n):
+	return (f(k_t, t, n) + f(k_t, t, n - 1)) / 2
+
+
+def A(l_t, t, n):
+	return (l_t(t[n]) + l_t(t[n - 1])) / 2 / params.h
+
+
+def B(l_t, k_t, t, n):
+	return A(l_t, t, n) + C(l_t, t, n) + 4 * params.Np * params.Np * params.sigma * k_t(t[n]) * pow(t[n], 3) * params.h
+
+
+def C(l_t, t, n):
+	return (l_t(t[n]) + l_t(t[n + 1])) / 2 / params.h
+
+
+def D(k_t, t, n):
+	return 4 * params.Np * params.Np + params.sigma * k_t(t[n]) * pow(params.T0, 4) * params.h
+
+
+def get_right_conditions(l_t, k_t, t):
+	K0 = x_right(l_t, t, 0) + pow(params.h, 2) / 8 * p_right(k_t, t, 0) + pow(params.h, 2) / 4 * p(k_t, t, 0)
+	M0 = pow(params.h, 2) / 8 * p_right(k_t, t, 0) - x_right(l_t, t, 0)
+	P0 = params.h * params.F0 + pow(params.h, 2) / 4 * (f_right(k_t, t, 0) + f_left(k_t, t, 0))
+
+	return K0, M0, P0
+
+
+def get_left_conditions(k_t, l_t, t, n):
+	Kn = x_left(l_t, t, n) / params.h - params.alpha - params.h * p(k_t, t, n) / 4 - params.h * p_left(k_t, t, n) / 8
+	Mn = x_left(l_t, t, n) / params.h - params.h * p_left(k_t, t, n) / 8
+	Pn = -(params.alpha * params.T0 + (f_right(k_t, t, n) + f_left(k_t, t, n)) / 4 * params.h)
+
+	return Kn, Mn, Pn
+
+
+def start():
+	l_t = interpolate(fst_table[0], fst_table[1])
+	k_t = interpolate(snd_table[0], snd_table[1])
+	t = [0 for _ in range(int(1 / params.h))]
+	
+	K0, M0, P0 = get_right_conditions(l_t, k_t, t)
+
+	xi_list = [0]
+	eta_list = [0]
+	x_list = list()
+
+	x = 0
+	n = 0
+	while x + params.h < 1:
+		x_list.append(x)
+
+		xi_list.append(C(l_t, t, n) / (B(l_t, k_t, t, n) - A(l_t, t, n) * xi_list[n]))
+		eta_list.append((D(k_t, t, n) + A(l_t, t, n) * xi_list[n]) / (B(l_t, k_t, t, n) - A(l_t, t, n) * xi_list[n]))
+
+		n += 1
+		x += params.h
+
+	Kn, Mn, Pn = get_left_conditions(k_t, l_t, t, n)
+
+	t[n] = (Pn - Mn * xi_list[n]) / (Kn + Mn * xi_list[n])
+	for i in range(n - 1, -1, -1):
+		t[i] = xi_list[i + 1] * t[i + 1] + eta_list[i + 1]
 \end{lstlisting}
 
 \section*{Результаты работы программы}
 
-\textbf{Представить разностный аналог краевого условия при $x = l$ и его краткий вывод интегро-интерполяционным методом.}
+\textbf{1. Представить разностный аналог краевого условия при $x = l$ и его краткий вывод интегро-интерполяционным методом.}
+
+Проинтегрируем уравнение на отрезке [$X_{n - \frac{1}{2}}; x_{n}$]
+
+\begin{equation*}
+	- \int^{x_{n}}_{x_n - \frac{1}{2}} \frac{dF}{dx} dT - \int^{x_n}_{x_n - \frac{1}{2}} P(T) \cdot T^4 dT + \int^{x_{n}}_{x_{n} - \frac{1}{2}} f(t) dT = 0
+\end{equation*}
+
+Второй и третий интеграл вычислим с помощью метода трапеций:
+
+\begin{equation*}
+	F_{n - \frac{1}{2}} - F_{n} - \frac{h}{4} (p_{n} y_{n} + p_{n - \frac{1}{2}}y_{n-\frac{1}{2}}) + \frac{h}{4} (f_{n} + f_{n - \frac{1}{2}}) = 0
+\end{equation*}
+
+Зная, что: 
+
+\begin{equation*}
+	F_{n - \frac{1}{2}} = x_{n - \frac{1}{2}} \frac{y_{n - 1}}{y_n}{h}
+\end{equation*}
+
+\begin{equation*}
+	F_{n} = \alpha_{n}(y_{n} - T_{0})
+\end{equation*}
+
+\begin{equation*}
+	y_{n - \frac{1}{2}} = \frac{y_{n} + y_{n - 1}}{2h}
+\end{equation*}
+
+Имеем:
+
+\begin{equation*}
+	\frac{x_{n - \frac{1}{2}} y_{n - 1}}{h} - \frac{x_{n - \frac{1}{2}}y_{n}}{h} - \alpha_{n}y_{n} + \alpha_{n} T_{0} - \frac{hp_{n}y_{n}}{48} - \frac{hp_{n - \frac{1}{2}}y_{n}}{8} - \frac{hp_{n - \frac{1}{2}}y_{n - 1}}{8} + \frac{f_{n - \frac{1}{2}} + f_{n}}{4}h = 0
+\end{equation*}
+
+\begin{equation*}
+	y_{n}(-\frac{x_{n - \frac{1}{2}}}{h} - \alpha_{n} - \frac{hp_{n}}{4} - \frac{hp_{n} - \frac{1}{2}}{8}) + y_{n - 1}(\frac{x_{n - \frac{1}{2}}}{h} - \frac{hp_{n - \frac{1}{2}}}{8}) = -(\alpha_{n}T_{0} + \frac{f_{n} - \frac{1}{2}}{4}h)
+\end{equation*}
+
+\clearpage
+\textbf{2. График зависимости температуры $T(x)$ координаты $x$ при заданных выше параметрах.}\\
 
 \begin{figure}[H]
 	\begin{center}
-		%\includegraphics[scale=0.5]{img/fst.jpg}
+		\includegraphics[scale=0.75]{img/1.png}
 	\end{center}
 	%\caption{Графики зависимости от времени импульса $t$}
-	\label{img:fst}
+	\label{img:1}
 \end{figure}
 
-\textbf{График зависимости температуры $T(x)$ координаты $x$ при заданных выше параметрах.}\\
+\textbf{3. График зависимости $T(x)$ при $F_{0}$ = -10 Bт / $cm^2$. }\\
 
-\textbf{График зависимости $T(x)$ при $F_{0}$ = -10 Bт / $cm^2$. }\\
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.75]{img/2.png}
+	\end{center}
+	%\caption{Графики зависимости от времени импульса $t$}
+	\label{img:2}
+\end{figure}
 
-\textbf{График зависимости $T(x)$ при увеличенных значениях $\alpha$ (например, в 3 раза). Сравнить с п. 2.}\\
+\textbf{4. График зависимости $T(x)$ при увеличенных значениях $\alpha$ (например, в 3 раза). Сравнить с п. 2.}\\
 
-\textbf{График зависимости $T(x)$ при $F_{0} = 0$.}\\
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.75]{img/3.png}
+	\end{center}
+	%\caption{Графики зависимости от времени импульса $t$}
+	\label{img:3}
+\end{figure}
 
-\textbf{Для указанного в задании исходного набора параметров привести данные по балансу энергии.}\\
+\textbf{5. График зависимости $T(x)$ при $F_{0} = 0$.}\\
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.7]{img/4.png}
+	\end{center}
+	%\caption{Графики зависимости от времени импульса $t$}
+	\label{img:4}
+\end{figure}
+
+\textbf{6. Для указанного в задании исходного набора параметров привести данные по балансу энергии.}\\
+
+\begin{itemize}
+	\item Точность выхода $\varepsilon_{1} = 0.069$ (по температуре)
+	\item Точность выхода $\varepsilon_{2} = 1.12$ (по балансу)
+\end{itemize}
 
 \section*{Ответы на вопросы}
 
 \textbf{1. Какие способы тестирования программы можно предложить?}\\
 
-При $F_0 > 0$ происходит охлаждение пластины, при $F_0 < 0$ нагревание. Кроме того, при увеличении показтеля теплосъема, уровень должен снижаться, а градиент увеличиваться.
+При $F_0 > 0$ происходит охлаждение пластины, при $F_0 < 0$ нагревание. Кроме того, при увеличении показтеля теплосъема, уровень должен снижаться, а градиент увеличиваться.\\
 
 \textbf{2. Получите  простейший разностный аналог нелинейного краевого условия при $x = l$.}\\
 
@@ -208,12 +401,106 @@
 Приводя подобные, получим:
 
 \begin{equation*}
-	\phi(y_{N})h + (k_{N} + \alpha_{N} h - k_{N} \xi_{N} - k_{N} \eta_{N})y_{N} - h\alpha_{N}T_{0} = 0
-\end{equation*}
+	\varphi(y_{N})h + (k_{N} + \alpha_{N} h - k_{N} \xi_{N} - k_{N} \eta_{N})y_{N} - h\alpha_{N}T_{0} = 0
+\end{equation*}\\
 
 \textbf{3. Опишите алгоритм применения метода прогонки, если при $x = 0$ краевое условие квазилинейное (как в настоящей работе), а при $x = l$, как в п. 2.}\\
 
-\textbf{4. Опишите алгоритм определения единственного значения сеточной функции $y_\rho$ в одной заданной точке $\rho$. Использовать встречную прогонку, т.е. комбинацию правой и левой прогонок.}\\
+Найдем начальные прогочные коэффициенты по формулам:
+
+\begin{equation*}
+	\xi = \frac{-M_{0}}{P_{0}}
+\end{equation*}
+
+\begin{equation*}
+	\eta = \frac{-K_{0}}{P_{0}}
+\end{equation*}
+
+коэффициенты $M_0, P_0, K_0$ были полученые в лекции №7. Далее, находим последующие прогоночные коэффициенты:
+
+\begin{equation*}
+	\xi_{n + 1} = \frac{C_{n}}{B_{n} - A_{n}\xi_{n}}
+\end{equation*}
+
+\begin{equation*}
+	\eta_{n + 1} = \frac{F_{n} + A_{n}\eta_{n}}{B_{n} - A_{n}\xi_{n}}
+\end{equation*}
+
+Из уравнения, полученного в п. 2., можем получить $y_{N}$ (решив это уравнение). По прогочной формуле можем найти все значения неизвестных $y_{N}$
+
+\begin{equation*}
+	y_{n} = \xi_{n + 1}y_{n + 1} + \eta_{n + 1}
+\end{equation*}\\
+
+\textbf{4. Опишите алгоритм определения единственного значения сеточной функции $y_p$ в одной заданной точке $p$. Использовать встречную прогонку, т.е. комбинацию правой и левой прогонок.}\\
+
+\textbf{1. Вычислим начальные прогоночные коэффициенты:}\\
+
+Для правой прогонки:
+
+\begin{equation*}
+	\xi = \frac{-M_0}{P_0}
+\end{equation*}
+
+\begin{equation*}
+	\xi = \frac{-K_0}{P_0}
+\end{equation*}
+
+Для левой прогонки:
+
+\begin{equation*}
+	\alpha_{N - 1} = \frac{-M_{N}}{K_{N}}
+\end{equation*}
+
+\begin{equation*}
+	\beta_{N - 1} = \frac{-P_{N}}{K_{N}}
+\end{equation*}
+
+\textbf{2. Найдем прогоночные коэффициенты:}\\
+
+Для левой прогонки:
+
+\begin{equation*}
+	\xi_{n + 1} = \frac{C_{n}}{B_{n} - A_{n}\xi_{n}}
+\end{equation*}
+
+\begin{equation*}
+	\eta_{n + 1} = \frac{F_{n} + A_{n}\eta_{n}}{B_{n} - A_{n}\xi_{n}}
+\end{equation*}
+
+Для правой прогонки:
+
+\begin{equation*}
+	\alpha_{n - 1} = \frac{A_{n}}{B_{n} - C_{n}\alpha_{n}}
+\end{equation*}
+
+\begin{equation*}
+	\beta_{n - 1} = \frac{F_{n} + C_{n}\beta_{n}} {B_{n} - C_{n}\alpha_{n}}
+\end{equation*}
+
+\textbf{3. Левые и правые прогонки: }
+
+\begin{equation*}
+	y_{n} = \xi_{n + 1} y_{n + 1} + \eta_{n + 1}
+\end{equation*}
+
+\begin{equation*}
+	y_{n} = \alpha_{n - 1} y_{n + 1} + \beta_{n - 1}
+\end{equation*}
+
+\textbf{4. Выразим $y_{p}$: }
+
+\begin{equation*}
+	y_{p - 1} = \xi_{p}y_{p} + \eta_{p}
+\end{equation*}
+
+\begin{equation*}
+	y_{p} = \alpha_{p - 1} y_{p - 1} + \beta_{p - 1}
+\end{equation*}
+
+\begin{equation*}
+	y_{p} = \frac{\xi_{n +1} \beta_{n} + \eta_{n + 1}}{1 - \xi_{n + 1} \alpha_ {n}}
+\end{equation*}
 
 \bibliographystyle{utf8gost705u}  % стилевой файл для оформления по ГОСТу
 	

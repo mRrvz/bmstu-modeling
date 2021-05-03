@@ -1,7 +1,8 @@
+import modeling as model
 
 
 def main():
-    pass
+    model.start()
 
 
 if __name__ == "__main__":
